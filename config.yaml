@@ -1,0 +1,13 @@
+server:
+  address: "127.0.0.1"
+  port: 8080
+  public_url: "http://localhost:8080"
+
+github:
+  v3_api_url: "https://api.github.com/"
+  app:
+    integration_id: 1 # !!env GH_INTEGRATION_ID
+    webhook_secret: !!env GH_WEBHOOK_SECRET
+    private_key: !!env GH_PRIVATE_KEY
+app_configuration:
+  sampleKey: "Sample Key Value"
