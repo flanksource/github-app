@@ -1,6 +1,6 @@
 /*
 Copyright © 2020 Flanksource
-This file is part of Flanksource build tools
+This file is part of Flanksource github-app
 */
 package main
 
