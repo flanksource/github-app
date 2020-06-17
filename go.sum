@@ -322,6 +322,14 @@ github.com/pascaldekloe/goe v0.1.0 h1:cBOtyMzM9HTpWjXfbbunk26uA6nG3a8n06Wieeh0Mw
 github.com/pascaldekloe/goe v0.1.0/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pelletier/go-buffruneio v0.2.0/go.mod h1:JkE26KsDizTr40EUHkXVtNPvgGtbSNq5BcowyYOWdKo=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
+github.com/philipstaffordwood/build-tools v0.0.0-20200617134408-ec906b37dd7c h1:ReLQk98CxcFVCkOsl9If2bLTSlN2h6ffwIaPneOox+w=
+github.com/philipstaffordwood/build-tools v0.0.0-20200617134408-ec906b37dd7c/go.mod h1:6R6rP+c2/PcwQMdQNCzOq6D/d8+9efyxk9MtsiSqLLc=
+github.com/philipstaffordwood/build-tools v0.0.0-20200617143006-f0c34a398a88 h1:fUwJ8YlFjcIX3bPuEg54nY5qj6YE+RUMz9ESTg5p8QI=
+github.com/philipstaffordwood/build-tools v0.0.0-20200617143006-f0c34a398a88/go.mod h1:6R6rP+c2/PcwQMdQNCzOq6D/d8+9efyxk9MtsiSqLLc=
+github.com/philipstaffordwood/build-tools v0.0.0-20200617191408-d04003e92b86 h1:R0lZ/t/A+HhEzlQ7RYEzFfvMXORRsTJ2g3XHZNtB85o=
+github.com/philipstaffordwood/build-tools v0.0.0-20200617191408-d04003e92b86/go.mod h1:6R6rP+c2/PcwQMdQNCzOq6D/d8+9efyxk9MtsiSqLLc=
+github.com/philipstaffordwood/build-tools v0.0.0-20200617192244-b064aebafa0e h1:HjRco+1KNlknbfgUMa0qCD6jiYsWWKHyBpnWY+Os66s=
+github.com/philipstaffordwood/build-tools v0.0.0-20200617192244-b064aebafa0e/go.mod h1:6R6rP+c2/PcwQMdQNCzOq6D/d8+9efyxk9MtsiSqLLc=
 github.com/pierrec/lz4 v2.0.5+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi+IEE17M5jbnwPHcY=
 github.com/pierrec/lz4 v2.3.0+incompatible h1:CZzRn4Ut9GbUkHlQ7jqBXeZQV41ZSKWFc302ZU6lUTk=
 github.com/pierrec/lz4 v2.3.0+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi+IEE17M5jbnwPHcY=

@@ -18,3 +18,6 @@ require (
 )
 
 replace gopkg.in/hairyhenderson/yaml.v2 => github.com/maxaudron/yaml v0.0.0-20190411130442-27c13492fe3c
+
+// TODO: switch to flanksource once PR is merged
+replace github.com/flanksource/build-tools v0.9.9 => github.com/philipstaffordwood/build-tools v0.0.0-20200617192244-b064aebafa0e
