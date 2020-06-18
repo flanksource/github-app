@@ -3,7 +3,7 @@ module github.com/flanksource/github-app
 go 1.14
 
 require (
-	github.com/flanksource/build-tools v0.9.9
+	github.com/flanksource/build-tools v0.9.10
 	github.com/flanksource/commons v1.2.0
 	github.com/google/go-github/v30 v30.1.0
 	github.com/google/go-github/v31 v31.0.0
@@ -25,7 +25,3 @@ require (
 )
 
 replace gopkg.in/hairyhenderson/yaml.v2 => github.com/maxaudron/yaml v0.0.0-20190411130442-27c13492fe3c
-
-// TODO: switch to flanksource once PR is merged
-//       https://github.com/flanksource/build-tools/pull/10
-replace github.com/flanksource/build-tools v0.9.9 => github.com/philipstaffordwood/build-tools v0.0.0-20200617192244-b064aebafa0e
