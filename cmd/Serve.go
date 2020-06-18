@@ -6,11 +6,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/flanksource/github-app/config"
 	"github.com/flanksource/github-app/server"
-	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var configFile string
@@ -19,14 +16,14 @@ var Serve = &cobra.Command{
 	Use:   "serve",
 	Short: "starts a github-app server",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		config, err := config.ReadConfig(configFile)
+		config, err := server.ReadConfig(configFile)
 		if err != nil {
-			return fmt.Errorf("error reading config file %v: %v",configFile, err)
+			return fmt.Errorf("error reading config file %v: %v", configFile, err)
 		}
 
-		logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+		//logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
-		server, err := server.New(config, logger)
+		server, err := server.New(config)
 		if err != nil {
 			return fmt.Errorf("error starting server: %v", err)
 		}
