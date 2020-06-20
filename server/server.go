@@ -6,11 +6,10 @@ package server
 
 import (
 	"fmt"
-	"github.com/alexedwards/scs"
 	"github.com/bluekeyes/hatpear"
 	"github.com/flanksource/commons/logger"
 	cfg "github.com/flanksource/github-app/config"
-	"github.com/flanksource/github-app/server/handlers"
+	"github.com/flanksource/github-app/server/handler"
 	"github.com/flanksource/github-app/version"
 	"net/http"
 
@@ -46,25 +45,12 @@ func New(c *cfg.Config) (*Server, error) {
 		Pretty: c.Logging.Text,
 	})
 
-	lifetime, _ := time.ParseDuration(c.Sessions.Lifetime)
-	if lifetime == 0 {
-		lifetime = DefaultSessionLifetime
-	}
-
 	publicURL, err := url.Parse(c.Server.PublicURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed parse public URL")
 	}
 
 	basePath := strings.TrimSuffix(publicURL.Path, "/")
-	forceTLS := publicURL.Scheme == "https"
-
-	sessions := scs.NewCookieManager(c.Sessions.Key)
-	sessions.Name("github-app")
-	sessions.Lifetime(lifetime)
-	sessions.Persist(true)
-	sessions.HttpOnly(true)
-	sessions.Secure(forceTLS)
 
 	base, err := baseapp.NewServer(c.Server, baseapp.DefaultParams(logger, "flanksource-githubapp.")...)
 	if err != nil {
@@ -81,14 +67,8 @@ func New(c *cfg.Config) (*Server, error) {
 		),
 	)
 
-	appClient, err := cc.NewAppClient()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize Github app client")
-	}
-
 	checkSuiteHandler := &handler.CheckSuiteHandler{
 		ClientCreator: cc,
-		Installations: githubapp.NewInstallationsService(appClient),
 	}
 
 	queueSize := c.Workers.QueueSize
