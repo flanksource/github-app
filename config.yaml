@@ -16,5 +16,3 @@ github:
     integration_id: 1 # !!env GH_INTEGRATION_ID
     webhook_secret: !!env GH_WEBHOOK_SECRET
     private_key: !!env GH_PRIVATE_KEY
-app_configuration:
-  sampleKey: "Sample Key Value"
