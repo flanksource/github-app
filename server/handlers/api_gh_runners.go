@@ -1,40 +1,46 @@
+/*
+Copyright © 2020 Flanksource
+This file is part of Flanksource github-app
+*/
 package handler
 
 import (
+	"context"
 	"fmt"
-	"github.com/alexedwards/scs"
-	"github.com/palantir/go-baseapp/baseapp"
-	"github.com/palantir/go-githubapp/githubapp"
-	"github.com/pkg/errors"
+	"github.com/flanksource/github-app/config"
+	"golang.org/x/oauth2"
+
+	"github.com/google/go-github/v32/github"
 	"net/http"
 )
 
+// GHRunners is a handler for the API endpoint for Github Runner related functionality
 type GHRunners struct {
-	githubapp.ClientCreator
-	Installations githubapp.InstallationsService
-	BaseConfig    *baseapp.HTTPConfig
-	Sessions      *scs.Manager
+	config.Config
 }
 
 func (h *GHRunners) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	//installation, err := h.Installations.GetByOwner(ctx, "philipstaffordwood")
-	//if err != nil {
-	//	return err
-	//}
+	client := getPatClient(ctx, h.Secrets.GhPat)
 
-	//c, err := h.ClientCreator.NewAppClient()
-	c, err := h.ClientCreator.NewInstallationClient(9772354)
-
-	if err != nil {
-		return errors.Wrap(err, "failed to create github client")
-	}
-	token, _, err := c.Actions.CreateRegistrationToken(ctx, "philipstaffordwood", "karina")
+	token, _, err := client.Actions.CreateRegistrationToken(ctx, h.Runners.Owner, h.Runners.Repo)
 	if err != nil {
 		return err
 	}
-	token.GetToken()
-	fmt.Fprintf(w, "{\"echo\": \"%s\"}", token.GetToken())
+
+	fmt.Fprintf(w, "{\"registration token\": \"%s\"}", token.GetToken())
 
 	return nil
+}
+
+// getPatClient returns a github client that uses the given
+// Personal Access Token to authenticate
+// NOTE: this is a workaround for issues experienced with using
+//       githubapp.ClientCreator.NewAppClient()
+func getPatClient(ctx context.Context, pat string) *github.Client {
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: pat},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+	return github.NewClient(tc)
 }
