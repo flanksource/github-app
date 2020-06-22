@@ -2,12 +2,12 @@
 Copyright © 2020 Flanksource
 This file is part of Flanksource github-app
 */
-package handlers
+package handler
 
 import (
 	"context"
 	"encoding/json"
-	"github.com/google/go-github/v30/github"
+	"github.com/google/go-github/v32/github"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
@@ -29,7 +29,7 @@ func (h *CheckSuiteHandler) Handle(ctx context.Context, eventType, deliveryID st
 		return errors.Wrap(err, "failed to parse issue comment event payload")
 	}
 
-	zerolog.Ctx(ctx).Printf("%v, %v",event.GetAction(), event.GetCheckSuite().GetApp().GetName())
+	zerolog.Ctx(ctx).Printf("%v, %v", event.GetAction(), event.GetCheckSuite().GetApp().GetName())
 
 	return nil
 }
