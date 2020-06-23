@@ -3,6 +3,7 @@ module github.com/flanksource/github-app
 go 1.14
 
 require (
+	github.com/bluekeyes/hatpear v0.0.0-20180714193905-ffb42d5bb417
 	github.com/flanksource/build-tools v0.9.10
 	github.com/flanksource/commons v1.2.0
 	github.com/google/go-github/v30 v30.1.0
@@ -20,6 +21,7 @@ require (
 	github.com/rs/zerolog v1.19.0
 	github.com/spf13/cobra v1.0.0
 	goji.io v2.0.2+incompatible
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/appengine v1.6.6 // indirect
 	gopkg.in/flanksource/yaml.v3 v3.1.1
 )

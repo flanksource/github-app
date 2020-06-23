@@ -2,7 +2,7 @@
 Copyright © 2020 Flanksource
 This file is part of Flanksource github-app
 */
-package handlers
+package handler
 
 import (
 	"archive/zip"

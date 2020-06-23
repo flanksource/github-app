@@ -110,6 +110,7 @@ github.com/fatih/color v1.9.0 h1:8xPHl4/q1VyqGIPif1F+1V3Y3lSmrq01EabUW3CoW5s=
 github.com/fatih/color v1.9.0/go.mod h1:eQcE1qtQxscV5RaZvpXrrb8Drkc3/DdQ+uUYCNjL+zU=
 github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
 github.com/flanksource/build-tools v0.9.9/go.mod h1:6R6rP+c2/PcwQMdQNCzOq6D/d8+9efyxk9MtsiSqLLc=
+github.com/flanksource/build-tools v0.9.10 h1:vu2w+pg3U6F6T/ECqt/JoE0rPglqBC0RtBCj7iC5kUc=
 github.com/flanksource/build-tools v0.9.10/go.mod h1:6R6rP+c2/PcwQMdQNCzOq6D/d8+9efyxk9MtsiSqLLc=
 github.com/flanksource/commons v1.2.0 h1:hd5UZhf8lE84HwgxE+ch/xupiu9YLxsFTO/a8p6cToU=
 github.com/flanksource/commons v1.2.0/go.mod h1:6P0TYmsqu3QVDBjrIoib4pmBBdt2M/Z934grc8B7i4U=

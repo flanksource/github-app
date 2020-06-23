@@ -5,80 +5,121 @@ This file is part of Flanksource github-app
 package server
 
 import (
+	"fmt"
+	"github.com/bluekeyes/hatpear"
 	"github.com/flanksource/commons/logger"
-	"github.com/flanksource/github-app/config"
-	"github.com/flanksource/github-app/server/handlers"
-	"github.com/google/go-github/v31/github"
-	"github.com/gregjones/httpcache"
+	cfg "github.com/flanksource/github-app/config"
+	"github.com/flanksource/github-app/server/handler"
+	"github.com/flanksource/github-app/version"
+	"net/http"
+
+	"github.com/rs/zerolog"
+
+	"github.com/google/go-github/v32/github"
 	"github.com/palantir/go-baseapp/baseapp"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/palantir/go-githubapp/oauth2"
-	"github.com/rs/zerolog"
+	"github.com/pkg/errors"
+
+	goji "goji.io"
 	"goji.io/pat"
-	"net/http"
+	"net/url"
+	"strings"
+	"time"
+)
+
+const (
+	DefaultSessionLifetime = 24 * time.Hour
 )
 
 type Server struct {
-	config *config.Config
+	config *cfg.Config
 	base   *baseapp.Server
 }
 
 // New instantiates a new Server.
 // Callers must then invoke Start to run the Server.
-func New(config *config.Config, logger zerolog.Logger) (*baseapp.Server, error) {
-	server, err := baseapp.NewServer(
-		config.Server,
-		baseapp.DefaultParams(logger, "flanksource-githubapp.")...,
-	)
+func New(c *cfg.Config) (*Server, error) {
+	logger := baseapp.NewLogger(baseapp.LoggingConfig{
+		Level:  c.Logging.Level,
+		Pretty: c.Logging.Text,
+	})
+
+	publicURL, err := url.Parse(c.Server.PublicURL)
 	if err != nil {
-		panic(err)
+		return nil, errors.Wrap(err, "failed parse public URL")
 	}
 
+	basePath := strings.TrimSuffix(publicURL.Path, "/")
+
+	base, err := baseapp.NewServer(c.Server, baseapp.DefaultParams(logger, "flanksource-githubapp.")...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize base server")
+	}
+
+	userAgent := fmt.Sprintf("%s/%s", "flanksource-github-app", version.GetVersion())
 	cc, err := githubapp.NewDefaultCachingClientCreator(
-		config.Github,
-		githubapp.WithClientUserAgent("example-app/1.0.0"),
-		githubapp.WithClientCaching(false, func() httpcache.Cache { return httpcache.NewMemoryCache() }),
+		c.Github,
+		githubapp.WithClientUserAgent(userAgent),
 		githubapp.WithClientMiddleware(
-			githubapp.ClientMetrics(server.Registry()),
+			githubapp.ClientLogging(zerolog.DebugLevel),
+			githubapp.ClientMetrics(base.Registry()),
 		),
 	)
-	if err != nil {
-		panic(err)
-	}
 
-	registerOAuth2Handler(config.Github)
-
-	checkRunHandler := &handlers.StatusHandler{
+	checkSuiteHandler := &handler.CheckSuiteHandler{
 		ClientCreator: cc,
 	}
 
-	checkSuiteHandler := &handlers.CheckSuiteHandler{
-		ClientCreator: cc,
+	queueSize := c.Workers.QueueSize
+	if queueSize < 1 {
+		queueSize = 100
 	}
 
-	webhookHandler := githubapp.NewEventDispatcher(
+	workers := c.Workers.Workers
+	if workers < 1 {
+		workers = 10
+	}
+
+	dispatcher := githubapp.NewEventDispatcher(
 		[]githubapp.EventHandler{
-			checkRunHandler,
+			//checkRunHandler,
 			checkSuiteHandler,
 		},
-		config.Github.App.WebhookSecret,
+		c.Github.App.WebhookSecret,
+		githubapp.WithScheduler(
+			githubapp.QueueAsyncScheduler(queueSize, workers, githubapp.WithSchedulingMetrics(base.Registry())),
+		),
 	)
 
-	mux := server.Mux()
+	var mux *goji.Mux
+	if basePath == "" {
+		mux = base.Mux()
+	} else {
+		mux = goji.SubMux()
+		base.Mux().Handle(pat.New(basePath+"/*"), mux)
+	}
 
 	// webhook route
-	mux.Handle(pat.Post(githubapp.DefaultWebhookRoute), webhookHandler)
+	mux.Handle(pat.Post(githubapp.DefaultWebhookRoute), dispatcher)
 
-	return server, nil
-}
+	// additional API routes
+	mux.Handle(pat.Get("/health"), hatpear.Try(&handler.HealthCheck{}))
 
-func Start() {
+	registerOAuth2Handler(c.Github)
 
+	gh_runners := goji.SubMux()
+	gh_runners.Handle(pat.Get("/github-runner-token"), hatpear.Try(&handler.GHRunners{Config: *c}))
+	mux.Handle(pat.New("/dispense/*"), gh_runners)
+
+	return &Server{
+		config: c,
+		base:   base,
+	}, nil
 }
 
 // Start is blocking and long-running
 func (s *Server) Start() error {
-
 	return s.base.Start()
 }
 
@@ -93,10 +134,10 @@ func registerOAuth2Handler(c githubapp.Config) {
 			client := github.NewClient(login.Client)
 			user, _, _ := client.Users.Get(r.Context(), "")
 			// handle error, save the user, ...
-			logger.Infof("%v",user)
+			logger.Infof("%v", user)
 
 			// redirect the user back to another page
-			http.Redirect(w, r, "/dashboard", http.StatusFound)
+			http.Redirect(w, r, "/health", http.StatusFound)
 		}),
 	))
 }
