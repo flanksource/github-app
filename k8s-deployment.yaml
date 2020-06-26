@@ -52,6 +52,9 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /conf
+          envFrom:
+            - secretRef:
+                name: github-app-secrets
           args:
             - serve
           ports:
