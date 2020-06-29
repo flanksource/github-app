@@ -6,6 +6,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/alexedwards/scs"
 	"github.com/bluekeyes/hatpear"
 	"github.com/flanksource/commons/logger"
 	cfg "github.com/flanksource/github-app/config"
@@ -45,12 +46,24 @@ func New(c *cfg.Config) (*Server, error) {
 		Pretty: c.Logging.Text,
 	})
 
+	lifetime, _ := time.ParseDuration(c.Sessions.Lifetime)
+	if lifetime == 0 {
+		lifetime = DefaultSessionLifetime
+	}
+
 	publicURL, err := url.Parse(c.Server.PublicURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed parse public URL")
 	}
 
 	basePath := strings.TrimSuffix(publicURL.Path, "/")
+
+	sessions := scs.NewCookieManager(c.Sessions.Key)
+	sessions.Name("github-app")
+	sessions.Lifetime(lifetime)
+	sessions.Persist(true)
+	sessions.HttpOnly(true)
+	//sessions.Secure(forceTLS)
 
 	base, err := baseapp.NewServer(c.Server, baseapp.DefaultParams(logger, "flanksource-githubapp.")...)
 	if err != nil {
@@ -105,8 +118,15 @@ func New(c *cfg.Config) (*Server, error) {
 
 	// additional API routes
 	mux.Handle(pat.Get("/health"), hatpear.Try(&handler.HealthCheck{}))
-
-	registerOAuth2Handler(c.Github)
+	mux.Handle(pat.Get(oauth2.DefaultRoute), oauth2.NewHandler(
+		oauth2.GetConfig(c.Github, nil),
+		//oauth2.ForceTLS(forceTLS),
+		oauth2.WithStore(&oauth2.SessionStateStore{
+			Sessions: sessions,
+		}),
+		oauth2.OnLogin(handler.Login(c.Github, sessions)),
+	))
+	//registerOAuth2Handler(c.Github)
 
 	gh_runners := goji.SubMux()
 	gh_runners.Handle(pat.Get("/github-runner-token"), hatpear.Try(&handler.GHRunners{Config: *c}))
@@ -123,21 +143,21 @@ func (s *Server) Start() error {
 	return s.base.Start()
 }
 
-func registerOAuth2Handler(c githubapp.Config) {
-	http.Handle("/api/auth/github", oauth2.NewHandler(
-		oauth2.GetConfig(c, []string{"user:email"}),
-		// force generated URLs to use HTTPS; useful if the app is behind a reverse proxy
-		oauth2.ForceTLS(true),
-		// set the callback for successful logins
-		oauth2.OnLogin(func(w http.ResponseWriter, r *http.Request, login *oauth2.Login) {
-			// look up the current user with the authenticated client
-			client := github.NewClient(login.Client)
-			user, _, _ := client.Users.Get(r.Context(), "")
-			// handle error, save the user, ...
-			logger.Infof("%v", user)
-
-			// redirect the user back to another page
-			http.Redirect(w, r, "/health", http.StatusFound)
-		}),
-	))
-}
+//func registerOAuth2Handler(c githubapp.Config) {
+//	http.Handle("/api/auth/github", oauth2.NewHandler(
+//		oauth2.GetConfig(c, []string{"user:email"}),
+//		// force generated URLs to use HTTPS; useful if the app is behind a reverse proxy
+//		oauth2.ForceTLS(true),
+//		// set the callback for successful logins
+//		oauth2.OnLogin(func(w http.ResponseWriter, r *http.Request, login *oauth2.Login) {
+//			// look up the current user with the authenticated client
+//			client := github.NewClient(login.Client)
+//			user, _, _ := client.Users.Get(r.Context(), "")
+//			// handle error, save the user, ...
+//			logger.Infof("%v", user)
+//
+//			// redirect the user back to another page
+//			http.Redirect(w, r, "/health", http.StatusFound)
+//		}),
+//	))
+//}
