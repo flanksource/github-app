@@ -16,51 +16,13 @@
 package config
 
 import (
-	"github.com/palantir/go-githubapp/githubapp"
-	"io/ioutil"
-
+	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/palantir/go-baseapp/baseapp"
-
+	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/pkg/errors"
 	"gopkg.in/flanksource/yaml.v3"
+	"io/ioutil"
 )
-
-type Config struct {
-	// Server holds basic server configs
-	Server baseapp.HTTPConfig `yaml:"server"`
-	// Github holds github app related configs
-	Github githubapp.Config `yaml:"github"`
-	// Secrets configures required secrets not related to github apps
-	Secrets  SecretsConfig  `yaml:"secrets"`
-	Runners  RunnersConfig  `yaml:"runners"`
-	Logging  LoggingConfig  `yaml:"logging"`
-	Sessions SessionsConfig `yaml:"sessions"`
-	Workers  WorkerConfig   `yaml:"workers"`
-}
-
-type SecretsConfig struct {
-	GhPat string `yaml:"gh-pat" json:"gh-pat"`
-}
-
-type RunnersConfig struct {
-	Owner string `yaml:"owner" json:"owner"`
-	Repo  string `yaml:"repo" json:"repo"`
-}
-
-type LoggingConfig struct {
-	Level string `yaml:"level" json:"level"`
-	Text  bool   `yaml:"text" json:"text"`
-}
-
-type WorkerConfig struct {
-	Workers   int `yaml:"workers"`
-	QueueSize int `yaml:"queue_size"`
-}
-
-type SessionsConfig struct {
-	Key      string `yaml:"key"`
-	Lifetime string `yaml:"lifetime"`
-}
 
 func ReadConfig(path string) (*Config, error) {
 	var c Config
@@ -76,3 +38,80 @@ func ReadConfig(path string) (*Config, error) {
 
 	return &c, nil
 }
+
+
+type (
+	Config struct {
+	// Server holds basic server configs
+	Server baseapp.HTTPConfig `yaml:"server"`
+	// Github holds github app related configs
+	Github githubapp.Config `yaml:"github"`
+	// Secrets configures required secrets not related to github apps
+	Secrets  SecretsConfig  `yaml:"secrets"`
+	Runners  RunnersConfig  `yaml:"runners"`
+	Logging  LoggingConfig  `yaml:"logging"`
+	Sessions SessionsConfig `yaml:"sessions"`
+	Workers  WorkerConfig   `yaml:"workers"`
+	// Auth allows the internal OAuth 2.0 auth server to be configured
+	Auth AuthConfig         `yaml:"auth"`
+}
+)
+
+type (
+	SecretsConfig struct {
+		GhPat string `yaml:"gh-pat" json:"gh-pat"`
+	}
+
+
+	RunnersConfig struct {
+		Owner string `yaml:"owner" json:"owner"`
+		Repo  string `yaml:"repo" json:"repo"`
+	}
+
+	LoggingConfig struct {
+		Level string `yaml:"level" json:"level"`
+		Text  bool   `yaml:"text" json:"text"`
+	}
+
+	WorkerConfig struct {
+		Workers   int `yaml:"workers"`
+		QueueSize int `yaml:"queue_size"`
+	}
+
+	SessionsConfig struct {
+		Key      string `yaml:"key"`
+		Lifetime string `yaml:"lifetime"`
+	}
+
+	AuthConfig struct {
+		Clients []ClientSpec  `yaml:"clients"`
+
+	}
+)
+
+// ClientSpec allows oauth2 clients
+// (think system users) to be specified
+type ClientSpec struct {
+	// ID Identifies the client and serves as user for basic auth
+	ID string		`yaml:"id"`
+	// Secret authenticates the client and serves as password for basic auth
+	Secret string	`yaml:"secret"`
+	// Domain is a label for a "range" over which access is granted
+	Domain string	`yaml:"domain"`
+	// UserID serves as a friendly name for the client (extra and optional)
+	UserID string	`yaml:"user"`
+}
+
+// GetClient is a conventience method to retrieve a
+// github.com/go-oauth2/oauth2/v4/models Client
+func (cs *ClientSpec) GetClient() *models.Client {
+	return &models.Client{
+		ID:     cs.ID,
+		Secret: cs.Secret,
+		Domain: cs.Domain,
+		UserID: cs.UserID,
+	}
+}
+
+
+
