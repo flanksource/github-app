@@ -85,7 +85,8 @@ type (
 
 	AuthConfig struct {
 		Clients []ClientSpec  `yaml:"clients"`
-
+		// A shared secret as symmetric key
+		SymmetricKey    string `yaml:"key"`
 	}
 )
 
