@@ -11,11 +11,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var configFile string
 
-var Serve = &cobra.Command{
-	Use:   "serve",
-	Short: "starts a github-app server",
+
+var (
+	Runners = &cobra.Command{
+		Use: "runners",
+		Short: "commands related to managing github runners",
+	}
+	Cleanup = &cobra.Command{
+	Use:   "cleanup",
+	Short: "cleans up offline runners",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		config, err := config.ReadConfig(configFile)
 		if err != nil {
@@ -30,7 +35,8 @@ var Serve = &cobra.Command{
 		return server.Start()
 	},
 }
+)
 
 func init() {
-	Serve.Flags().StringVar(&configFile, "configuration file", "config.yaml", "The config file containing secrets, endpoints, etc.")
+	Runners.Flags().StringVar(&configFile, "configuration file", "config.yaml", "The config file containing secrets, endpoints, etc.")
 }

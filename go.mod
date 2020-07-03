@@ -21,6 +21,7 @@ require (
 	github.com/rs/zerolog v1.19.0
 	github.com/spf13/cobra v1.0.0
 	goji.io v2.0.2+incompatible
+	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/appengine v1.6.6 // indirect
 	gopkg.in/flanksource/yaml.v3 v3.1.1
