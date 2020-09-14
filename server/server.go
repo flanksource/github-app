@@ -83,7 +83,6 @@ func New(c *cfg.Config) (*Server, error) {
 
 	dispatcher := githubapp.NewEventDispatcher(
 		[]githubapp.EventHandler{
-			//checkRunHandler,
 			checkSuiteHandler,
 		},
 		c.Github.App.WebhookSecret,
@@ -106,10 +105,22 @@ func New(c *cfg.Config) (*Server, error) {
 	// additional API routes
 	mux.Handle(pat.Get("/health"), hatpear.Try(&handler.HealthCheck{}))
 
+
+
+	as := handler.AuthServer{Cfg: c}
+	err = as.Init()
+	if err != nil {
+		return nil, err
+	}
+	mux.Handle(pat.Post("/token"), hatpear.Try(&as))
+	mux.Handle(pat.Get("/token"), hatpear.Try(&as))
+
+	//This Oauth2 handler is required during GH App registration
+	//when GH checks that there is one.
 	registerOAuth2Handler(c.Github)
 
 	gh_runners := goji.SubMux()
-	gh_runners.Handle(pat.Get("/github-runner-token"), hatpear.Try(&handler.GHRunners{Config: *c}))
+	gh_runners.Handle(pat.Get("/github-runner-token"), &handler.GHRunners{Config: *c})
 	mux.Handle(pat.New("/dispense/*"), gh_runners)
 
 	return &Server{
