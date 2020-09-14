@@ -1,0 +1,103 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: github-app
+  namespace: platform-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: github-app-role
+  namespace: platform-system
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-app
+  namespace: platform-system
+  labels:
+    app: github-app
+  annotations:
+    reload/all: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: github-app
+  template:
+    metadata:
+      labels:
+        app: github-app
+    spec:
+      serviceAccountName: github-app
+      securityContext:
+        runAsUser: 0
+      volumes:
+        - name: config
+          configMap:
+            name: github-app-config
+      containers:
+        - name: github-app
+          image: docker.io/flanksource/github-app:{{.github_app.version | default "none"}}
+          volumeMounts:
+            - name: config
+              mountPath: /conf
+          envFrom:
+            - secretRef:
+                name: github-app-secrets
+          args:
+            - serve
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+            limits:
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: github-app
+  namespace: platform-system
+  labels:
+    app: github-app
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: github-app
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: github-app
+  namespace: platform-system
+  labels:
+    app: github-app
+  annotations:
+    kubernetes.io/tls-acme: "true"
+spec:
+  tls:
+    - hosts:
+        - github-app.{{.domain}}
+      secretName: github-app-tls
+  rules:
+    - host: github-app.{{.domain}}
+      http:
+        paths:
+          - backend:
+            serviceName: github-app
+            servicePort: 80
